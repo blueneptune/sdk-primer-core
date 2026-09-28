@@ -1,0 +1,81 @@
+[project]
+name = "sdk-primer"
+version = "0.1.0"
+description = "Facade-style SDK template for wrapping a REST API - copy this to start a new SDK."
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "pydantic[email]>=2.13.5",
+    "loguru>=0.7.3",
+]
+
+[project.optional-dependencies]
+# sdk_primer.testing (the pytest fixtures below) hard-imports pytest, but
+# a production consumer of the SDK - one that never runs its own tests
+# against sdk_primer-related code - shouldn't have pytest forced into
+# their dependency tree just for importing User/BaseAPIModel. Any project
+# actually running pytest already has pytest installed as its own dev
+# dependency anyway, which is what makes the plugin below load correctly
+# in practice regardless of whether this extra was requested.
+testing = ["pytest>=9.1.1"]
+
+[project.entry-points.pytest11]
+# Registers sdk_primer.testing's fixtures (api_client, log_messages) as a
+# pytest plugin - any project with sdk_primer installed gets them for
+# free, no conftest.py wiring needed. See testing.py and the guide's
+# chapter on it.
+sdk_primer = "sdk_primer.testing"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sdk_primer"]
+
+[dependency-groups]
+# Previously lived in sdk-primer-v2's root pyproject.toml, back when this
+# package was a uv workspace member sharing that root's lockfile/venv -
+# moved here so this repo can run its own tests/lint/typecheck standalone
+# now that it's independently cloned, versioned and released. See the
+# guide's chapter on the split (sdk-primer-v2, the combined repo with the
+# guide and examples/user-service, is where that chapter lives).
+dev = [
+    "coverage>=7.16.1",
+    "mypy>=2.3.1",
+    "pytest>=9.1.1",
+    "respx>=0.23.1",
+    "ruff>=0.16.8",
+]
+
+[tool.ruff]
+line-length = 100
+# ruff formats Python fences inside .md files too by default, which mangles
+# short illustrative sketches (e.g. one-line class stubs in README.md/
+# TODO.md) into sprawling real-code formatting. Markdown there is
+# documentation, not code that runs, so leave it alone.
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+strict = true
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+# sdk_primer registers itself as a pytest plugin (see this file's
+# [project.entry-points.pytest11]), which means pytest imports it during
+# its own early plugin-loading phase - before pytest-cov's `--cov` flag
+# gets a chance to start tracing. `coverage run -m pytest` sidesteps that
+# entirely: coverage.py starts tracing before the `pytest` module itself
+# is even imported, so it sees everything regardless of plugin load
+# order. Run with `uv run coverage run -m pytest && uv run coverage report`.
+source = ["sdk_primer"]
+
+[tool.coverage.report]
+show_missing = true
