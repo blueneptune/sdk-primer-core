@@ -183,21 +183,23 @@ keeping in view, not worth starting before the items above are solid.
 ## ~~Split into its own git repo~~
 
 **Done.** This is that repo - `blueneptune/sdk-primer-core`, split out of the combined
-`sdk-primer-v2` repo (guide + `examples/user-service`) once real downstream consumption started:
-multiple separate SDK projects pulling this in as a dependency, where `uv add
-git+.../sdk-primer-v2.git#subdirectory=sdk-primer` would have dragged the whole guide and example
-project along with every clone, not just the engine. Referenced back from `sdk-primer-v2` as a git
+`yoki-sdk-primer` repo (guide + `examples/user-service`; named `sdk-primer-v2` locally and
+`sdk-primer` on GitHub at the time of the split, renamed to `yoki-sdk-primer` shortly after - see
+that repo's guide for both chapters) once real downstream consumption started: multiple separate
+SDK projects pulling this in as a dependency, where `uv add
+git+.../yoki-sdk-primer.git#subdirectory=sdk-primer` would have dragged the whole guide and example
+project along with every clone, not just the engine. Referenced back from `yoki-sdk-primer` as a git
 submodule at the same `sdk-primer/` path, so that repo still gets everything (guide, this engine's
 source for local dev, `examples/user-service`) in one clone, while `examples/user-service` itself
-now depends on this repo directly via `uv add git+https://github.com/blueneptune/sdk-primer-core.git@v0.1.0`
+now depends on this repo directly via `uv add git+https://github.com/blueneptune/sdk-primer-core.git@v0.1.1`
 - no `#subdirectory=` needed any more, proving the split actually works rather than just declaring
-it. See `sdk-primer-v2/guide`'s chapter on it for the full reasoning, including the two decisions
+it. See `yoki-sdk-primer/guide`'s chapter on it for the full reasoning, including the two decisions
 made going in: a fresh initial commit here rather than extracted history (simpler, at the cost of
 `git blame` not reaching past this repo's first commit), and public visibility (no auth needed for
 any downstream consumer or CI to pull it).
 
 Accepted tradeoff, called out before doing this: every engine change is now two commits across two
-repos - commit/push/tag here, then a second commit in `sdk-primer-v2` just to bump the submodule
+repos - commit/push/tag here, then a second commit in `yoki-sdk-primer` just to bump the submodule
 pointer - where before it was one atomic commit touching code, tests, docs and a guide chapter
 together. Worth it once real consumers exist; premature before that, which is why this stayed
 deferred through the pagination and correlation-ID work that came right before it.

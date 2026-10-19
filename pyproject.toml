@@ -1,6 +1,6 @@
 [project]
 name = "sdk-primer"
-version = "0.1.0"
+version = "0.1.1"
 description = "Facade-style SDK template for wrapping a REST API - copy this to start a new SDK."
 requires-python = ">=3.12"
 dependencies = [
@@ -34,11 +34,11 @@ build-backend = "hatchling.build"
 packages = ["src/sdk_primer"]
 
 [dependency-groups]
-# Previously lived in sdk-primer-v2's root pyproject.toml, back when this
+# Previously lived in yoki-sdk-primer's root pyproject.toml, back when this
 # package was a uv workspace member sharing that root's lockfile/venv -
 # moved here so this repo can run its own tests/lint/typecheck standalone
 # now that it's independently cloned, versioned and released. See the
-# guide's chapter on the split (sdk-primer-v2, the combined repo with the
+# guide's chapter on the split (yoki-sdk-primer, the combined repo with the
 # guide and examples/user-service, is where that chapter lives).
 dev = [
     "coverage>=7.16.1",

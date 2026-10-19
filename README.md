@@ -16,15 +16,15 @@ Meant as a base to depend on when building others like it. This package ships **
 engine** - `BaseAPIModel`, `APIClient`, `ResourceManager`, `configure_logging`, and the `testing`
 fixtures. No resource, no facade, and no worked example ship inside it: a real project depending on
 `sdk-primer` is a NetBackup SDK, a Rubrik SDK, not a library of `User` objects. `examples/user-service`
-in [`blueneptune/sdk-primer-v2`](https://github.com/blueneptune/sdk-primer-v2) - the combined repo
-this package was split out of - is what a real project built on top of this actually looks like: its
-own `user.py`, its own `facade.py` - the shape to copy, written as first-party code in the consuming
-project, not something this package provides.
+in [`blueneptune/yoki-sdk-primer`](https://github.com/blueneptune/yoki-sdk-primer) - the combined
+repo this package was split out of - is what a real project built on top of this actually looks
+like: its own `user.py`, its own `facade.py` - the shape to copy, written as first-party code in the
+consuming project, not something this package provides.
 
 The full narrative of *why* it's built this way - not just what the code does - is the chaptered
 build-journal guide at
-[`sdk-primer-v2/guide`](https://github.com/blueneptune/sdk-primer-v2/tree/main/guide), including the
-chapter on why this package moved into its own repo.
+[`yoki-sdk-primer/guide`](https://github.com/blueneptune/yoki-sdk-primer/tree/main/guide), including
+the chapter on why this package moved into its own repo.
 
 ## Quickstart
 
@@ -268,8 +268,8 @@ so it doesn't miss that early import. See `[tool.coverage.run]` in this file.
 ## Adapting this for a new service
 
 See `examples/user-service` in
-[`blueneptune/sdk-primer-v2`](https://github.com/blueneptune/sdk-primer-v2), and that repo's guide's
-"Adapting the template" and "A real example project" chapters, for worked examples. In short: write
+[`blueneptune/yoki-sdk-primer`](https://github.com/blueneptune/yoki-sdk-primer), and that repo's
+guide's "Adapting the template" and "A real example project" chapters, for worked examples. In short: write
 a `BaseAPIModel` subclass with your resource's fields and `_resource_path` for each resource type
 your target service exposes, register it on your own small `ResourceManager`-based facade the way
 `examples/user-service/user.py` / `facade.py` show, and construct an `APIClient` per connection.
@@ -278,14 +278,14 @@ To build a whole new SDK project on top of this one, depend on it rather than co
 dependency pinned to a tag:
 
 ```
-uv add git+https://github.com/blueneptune/sdk-primer-core.git@v0.1.0
+uv add git+https://github.com/blueneptune/sdk-primer-core.git@v0.1.1
 ```
 
 so fixes and improvements here reach every project built on it by bumping a version, rather than
 needing to be manually re-applied to each copy. This package is deliberately kept bare (no
 example/facade code, nothing beyond the engine) so that dependency stays genuinely lightweight -
-`examples/user-service` in `sdk-primer-v2` depends on this repo the exact same way, proving it works
-before any real NetBackup/Rubrik/ServiceNow SDK does the same.
+`examples/user-service` in `yoki-sdk-primer` depends on this repo the exact same way, proving it
+works before any real NetBackup/Rubrik/ServiceNow SDK does the same.
 
 ## Roadmap
 
