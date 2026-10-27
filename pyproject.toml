@@ -1,6 +1,6 @@
 [project]
 name = "sdk-primer"
-version = "0.1.1"
+version = "0.1.2"
 description = "Facade-style SDK template for wrapping a REST API - copy this to start a new SDK."
 requires-python = ">=3.12"
 dependencies = [
