@@ -251,6 +251,9 @@ sdk_primer registers a pytest plugin (`sdk_primer.testing`) - any project with s
 
 ## Development
 
+Work on this repo follows the same weekly release cadence as the yoki SDKs - release branches,
+branch names, Friday's test and Monday's tag are in [`docs/development.md`](docs/development.md).
+
 ```
 uv sync
 uv run pytest                          # unit tests, mocked HTTP via respx
