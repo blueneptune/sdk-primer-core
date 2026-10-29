@@ -251,8 +251,8 @@ sdk_primer registers a pytest plugin (`sdk_primer.testing`) - any project with s
 
 ## Development
 
-Work on this repo follows the same weekly release cadence as the yoki SDKs - release branches,
-branch names, Friday's test and Monday's tag are in [`docs/development.md`](docs/development.md).
+How work on this repo is merged and released - branch names, the checks before a tag, and
+tagging, the same as for the yoki SDKs - is in [`docs/development.md`](docs/development.md).
 
 ```
 uv sync
