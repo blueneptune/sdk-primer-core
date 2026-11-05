@@ -54,6 +54,7 @@ from .exceptions import (
     SDKError,
     ServerError,
     ValidationError,
+    server_message,
 )
 from .pagination import CursorPagination, OffsetPagination, PaginationStrategy
 from .resource import ResourceManager
@@ -73,6 +74,7 @@ __all__ = [
     "SDKError",
     "ServerError",
     "TokenExchangeAuth",
+    "server_message",
     "ValidationError",
     "configure_logging",
 ]

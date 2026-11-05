@@ -106,13 +106,19 @@ except RateLimitedError as exc:
     print(f"rate limited, retry after {exc.retry_after}s")
 except ValidationError as exc:
     print(f"server rejected the request: {exc.detail}")
-except SDKError:
-    ...  # anything else
+except SDKError as exc:
+    print(exc.status_code, exc.server_message)  # anything else, with the server's reason
 ```
+
+Every one of them carries what the server said: `status_code`, `detail` (its error payload -
+parsed JSON, or the text) and `server_message` (the one-line reason picked out of `detail`:
+`errorMessage`, `errorString`, `detail`, `message`, `error`, `title`, or the first of a JSON:API
+`errors` list). The reason is also on the end of the message, so a log line shows it:
+`GET https://.../policies/x -> 404: The policy does not exist`.
 
 | Status | Exception |
 |---|---|
-| 400, 422 | `ValidationError` (`.detail` - the server's own error payload) |
+| 400, 422 | `ValidationError` |
 | 401 | `AuthenticationError` |
 | 404 | `NotFoundError` (also a `ValueError`, for backward compatibility) |
 | 429 | `RateLimitedError` (`.retry_after`, seconds, if the server sent one) |

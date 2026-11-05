@@ -62,6 +62,8 @@ def _exception_for(response: httpx.Response) -> SDKError:
     if exc_type is None:
         exc_type = ServerError if response.status_code >= 500 else ClientError
     message = f"{response.request.method} {response.request.url} -> {response.status_code}"
+    detail = _detail_of(response)
+    status = response.status_code
 
     if exc_type is RateLimitedError:
         retry_after = response.headers.get("Retry-After")
@@ -71,16 +73,24 @@ def _exception_for(response: httpx.Response) -> SDKError:
                 parsed = float(retry_after)
             except ValueError:
                 pass
-        return RateLimitedError(message, retry_after=parsed)
+        return RateLimitedError(message, retry_after=parsed, detail=detail, status_code=status)
 
-    if exc_type is ValidationError:
-        try:
-            detail: Any = response.json()
-        except ValueError:
-            detail = response.text
-        return ValidationError(message, detail=detail)
+    return exc_type(message, detail=detail, status_code=status)
 
-    return exc_type(message)
+
+def _detail_of(response: httpx.Response) -> Any:
+    """The error payload: parsed JSON if it is JSON, else the text, else
+    None for an empty body."""
+    try:
+        response.read()
+    except httpx.HTTPError:
+        return None
+    if not response.content:
+        return None
+    try:
+        return response.json()
+    except ValueError:
+        return response.text
 
 
 class APIClient:

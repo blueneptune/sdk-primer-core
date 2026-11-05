@@ -114,7 +114,9 @@ class BaseAPIModel(BaseModel):
             response = client.get(f"/{cls._resource_path}/{resource_id}")
         except NotFoundError as exc:
             logger.warning("{} not found id={}", cls.__name__, resource_id)
-            raise NotFoundError(f"{cls.__name__} not found.") from exc
+            raise NotFoundError(
+                f"{cls.__name__} not found.", detail=exc.detail, status_code=exc.status_code
+            ) from exc
         logger.info("Loaded {} id={}", cls.__name__, resource_id)
         instance = cls(**response.json())
         instance.bind(client)

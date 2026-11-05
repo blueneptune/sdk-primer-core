@@ -120,3 +120,79 @@ def test_network_error_is_an_sdk_error_with_the_original_as_cause(client: APICli
         assert isinstance(exc.__cause__, httpx.ConnectError)
     else:
         pytest.fail("expected NetworkError")
+
+
+@pytest.mark.parametrize(
+    ("status", "payload", "reason"),
+    [
+        (403, {"errorCode": 8000, "errorMessage": "Access denied for this role"}, "Access denied"),
+        (404, {"errorCode": 404, "errorMessage": "The policy does not exist"}, "does not exist"),
+        (409, {"errors": [{"detail": "Already exists", "status": "409"}]}, "Already exists"),
+        (500, {"errorString": "Internal failure in the job manager"}, "job manager"),
+        (500, {"error": {"message": "nested reason"}}, "nested reason"),
+    ],
+)
+@respx.mock
+def test_every_error_keeps_the_servers_payload_and_reason(
+    client: APIClient, status: int, payload: dict[str, object], reason: str
+) -> None:
+    """Not only 400/422: an API's 403, 404, 409 or 500 says why too."""
+    respx.get("https://api.test/widgets").mock(return_value=httpx.Response(status, json=payload))
+    with pytest.raises(SDKError) as exc_info:
+        client.get("/widgets")
+    error = exc_info.value
+    assert error.status_code == status
+    assert error.detail == payload
+    assert error.server_message is not None and reason in error.server_message
+    assert reason in str(error)
+    assert str(error).startswith(f"GET https://api.test/widgets -> {status}")
+
+
+@respx.mock
+def test_plain_text_reason_is_kept(client: APIClient) -> None:
+    respx.get("https://api.test/widgets").mock(
+        return_value=httpx.Response(403, text="Forbidden: missing scope")
+    )
+    with pytest.raises(ClientError) as exc_info:
+        client.get("/widgets")
+    assert exc_info.value.detail == "Forbidden: missing scope"
+    assert str(exc_info.value).endswith(": Forbidden: missing scope")
+
+
+@respx.mock
+def test_html_error_page_is_detail_but_not_the_reason(client: APIClient) -> None:
+    respx.get("https://api.test/widgets").mock(
+        return_value=httpx.Response(502, text="<html><body>Bad gateway</body></html>")
+    )
+    with pytest.raises(ServerError) as exc_info:
+        client.get("/widgets")
+    assert exc_info.value.detail.startswith("<html>")
+    assert exc_info.value.server_message is None
+    assert str(exc_info.value) == "GET https://api.test/widgets -> 502"
+
+
+@respx.mock
+def test_empty_body_gives_no_detail(client: APIClient) -> None:
+    respx.get("https://api.test/widgets").mock(return_value=httpx.Response(404))
+    with pytest.raises(NotFoundError) as exc_info:
+        client.get("/widgets")
+    assert exc_info.value.detail is None
+    assert exc_info.value.status_code == 404
+
+
+@respx.mock
+def test_rate_limited_error_keeps_detail_too(client: APIClient) -> None:
+    respx.get("https://api.test/widgets").mock(
+        return_value=httpx.Response(
+            429, headers={"Retry-After": "2"}, json={"message": "slow down"}
+        )
+    )
+    with pytest.raises(RateLimitedError) as exc_info:
+        client.get("/widgets")
+    assert exc_info.value.retry_after == 2.0
+    assert exc_info.value.server_message == "slow down"
+
+
+def test_network_error_has_no_status() -> None:
+    error = NetworkError("GET https://api.test/widgets: refused")
+    assert error.status_code is None and error.detail is None
