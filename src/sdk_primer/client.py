@@ -247,8 +247,21 @@ class APIClient:
                     self._sleep(delay)
                     attempt += 1
                     continue
-                log.error("<- {} {}{} failed: {}", method, self.base_url, endpoint, exc)
-                raise _exception_for(exc.response) from exc
+                # A refusal (4xx) goes to the caller as an exception; whether
+                # it is an error is the caller's to say - an SDK probing for a
+                # feature expects some. A server failure (5xx) is always one.
+                error = _exception_for(exc.response)
+                status = exc.response.status_code
+                (log.info if status < 500 else log.error)(
+                    "<- {} {}{} {} {}{}",
+                    method,
+                    self.base_url,
+                    endpoint,
+                    "refused with" if status < 500 else "failed with",
+                    status,
+                    f" - {error.server_message}" if error.server_message else "",
+                )
+                raise error from exc
             except httpx.HTTPError as exc:
                 if attempt < self.max_attempts:
                     delay = self._retry_delay(attempt, None)
